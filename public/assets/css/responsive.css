@@ -1,0 +1,762 @@
+/* ==============================================
+   RESPONSIVE.CSS — نظام اللجنة العلمية
+   شامل لجميع أحجام الشاشات
+   ============================================== */
+
+/* ------------------------------------------------
+   1. BREAKPOINTS المرجعية
+   xs  < 576px   (موبايل صغير)
+   sm  576-767px (موبايل كبير)
+   md  768-991px (تابلت)
+   lg  992-1199px (لابتوب)
+   xl  ≥ 1200px  (سطح مكتب)
+   ------------------------------------------------ */
+
+/* ================================================
+   2. الخطوط والأحجام الأساسية (Fluid Typography)
+   ================================================ */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 575.98px) {
+  html { font-size: 14px; }
+}
+@media (min-width: 576px) and (max-width: 767.98px) {
+  html { font-size: 15px; }
+}
+@media (min-width: 1400px) {
+  html { font-size: 17px; }
+}
+
+/* ================================================
+   3. CONTAINER — عرض متجاوب
+   ================================================ */
+.container {
+  width: 100%;
+  padding-right: 16px;
+  padding-left: 16px;
+  margin-right: auto;
+  margin-left: auto;
+}
+@media (max-width: 575.98px) {
+  .container { padding-right: 12px; padding-left: 12px; }
+}
+@media (min-width: 576px)  { .container { max-width: 540px; } }
+@media (min-width: 768px)  { .container { max-width: 720px; } }
+@media (min-width: 992px)  { .container { max-width: 960px; } }
+@media (min-width: 1200px) { .container { max-width: 1140px; } }
+@media (min-width: 1400px) { .container { max-width: 1320px; } }
+
+/* ================================================
+   4. NAVBAR الرئيسية (front)
+   ================================================ */
+
+/* ===== ديسكتوب ===== */
+.main-site-navbar {
+  min-height: 60px;
+}
+.navbar-inner-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.navbar-brand-section {
+  flex-shrink: 0;
+}
+.navbar-center-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.navbar-left-section {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.navbar-nav-modern {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav-pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.88);
+  transition: all 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-pill-link:hover,
+.nav-pill-link.active {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+/* ===== تابلت (768-991px) ===== */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .navbar-brand-text { font-size: 1rem; }
+  .nav-pill-link { padding: 6px 10px; font-size: 0.82rem; }
+}
+
+/* ===== موبايل (< 992px) ===== */
+@media (max-width: 991.98px) {
+  .navbar-center-section { display: none !important; }
+  .navbar-logo-img { max-height: 34px !important; }
+  .navbar-brand-text { font-size: 0.95rem !important; }
+  .navbar-left-section { gap: 6px; }
+  .notif-btn-modern { width: 36px; height: 36px; font-size: 0.95rem; }
+  .theme-toggle-pill { padding: 5px 10px !important; font-size: 0.8rem !important; }
+}
+
+/* ===== موبايل صغير (< 576px) ===== */
+@media (max-width: 575.98px) {
+  .main-site-navbar { min-height: 54px; }
+  .navbar-inner-container { padding: 0 8px; }
+  .navbar-brand-text { font-size: 0.88rem !important; }
+  .navbar-logo-img { max-height: 30px !important; }
+  .notif-btn-modern { width: 32px; height: 32px; font-size: 0.85rem; }
+  .navbar-toggler { width: 36px; height: 36px; padding: 6px; }
+}
+
+/* ================================================
+   5. OFFCANVAS (القائمة الجانبية للموبايل)
+   ================================================ */
+.custom-offcanvas {
+  --bs-offcanvas-width: min(300px, 85vw);
+  max-height: 100vh !important;
+  overflow-y: auto;
+}
+
+@media (max-width: 360px) {
+  .custom-offcanvas { --bs-offcanvas-width: 92vw; }
+}
+
+.offcanvas-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #374151;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
+  margin-bottom: 2px;
+}
+.offcanvas-nav-item:hover,
+.offcanvas-nav-item.active {
+  background: rgba(26, 115, 232, 0.08);
+  color: #1a73e8;
+}
+.offcanvas-nav-item i {
+  width: 22px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* ================================================
+   6. HERO SECTION
+   ================================================ */
+.hero-section {
+  padding: 80px 0 0;
+  min-height: auto;
+}
+.hero-section h1 { font-size: clamp(1.6rem, 5vw, 2.8rem); }
+.hero-section p  { font-size: clamp(0.9rem, 2.5vw, 1.15rem); }
+
+@media (max-width: 767.98px) {
+  .hero-section { padding: 50px 0 0; }
+  .hero-section h1 { font-size: 1.7rem; margin-bottom: 10px; }
+  .hero-section p  { font-size: 0.95rem; margin-bottom: 16px; }
+  .hero-section .btn { font-size: 0.88rem; padding: 8px 20px; }
+}
+@media (max-width: 575.98px) {
+  .hero-section { padding: 36px 0 0; }
+  .hero-section h1 { font-size: 1.45rem; }
+  .hero-section .hero-actions { flex-direction: column; align-items: center; gap: 10px; }
+  .hero-section .hero-actions .btn { width: 100%; max-width: 280px; }
+}
+
+/* ================================================
+   7. CARDS الرئيسية
+   ================================================ */
+.card {
+  border-radius: 12px;
+}
+
+@media (max-width: 767.98px) {
+  .card-body { padding: 1rem; }
+  .card-header { padding: 0.8rem 1rem; }
+}
+@media (max-width: 575.98px) {
+  .card-body { padding: 0.85rem; }
+}
+
+/* كروت التخصصات */
+.major-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.major-card:hover { transform: translateY(-4px); }
+
+@media (max-width: 575.98px) {
+  .major-card { border-radius: 14px; }
+  .major-card .card-body { padding: 0.9rem; }
+}
+
+/* كروت المستويات */
+@media (max-width: 575.98px) {
+  .major-level-card { padding: 0.75rem !important; border-radius: 12px !important; }
+  .major-level-card .level-icon { width: 44px !important; height: 44px !important; font-size: 1.1rem !important; }
+  .major-level-card h5 { font-size: 0.88rem !important; }
+}
+
+/* ================================================
+   8. جداول (Tables)
+   ================================================ */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+
+@media (max-width: 767.98px) {
+  .table { font-size: 0.85rem; }
+  .table th, .table td { padding: 8px 10px; white-space: nowrap; }
+}
+@media (max-width: 575.98px) {
+  .table { font-size: 0.8rem; }
+  .table th, .table td { padding: 7px 8px; }
+}
+
+/* ================================================
+   9. FORMS
+   ================================================ */
+@media (max-width: 767.98px) {
+  .form-control, .form-select { font-size: 0.95rem; padding: 10px 12px; }
+  .btn { font-size: 0.9rem; padding: 9px 18px; }
+  .btn-sm { font-size: 0.8rem; padding: 6px 12px; }
+  .btn-lg { font-size: 1rem; padding: 11px 24px; }
+}
+@media (max-width: 575.98px) {
+  .form-control, .form-select { font-size: 0.9rem; padding: 9px 11px; }
+  .input-group .btn { padding: 9px 14px; }
+}
+
+/* ================================================
+   10. BADGES & CHIPS
+   ================================================ */
+@media (max-width: 575.98px) {
+  .badge { font-size: 0.72rem; padding: 3px 8px; }
+}
+
+/* ================================================
+   11. ALERTS / FLASH MESSAGES
+   ================================================ */
+@media (max-width: 575.98px) {
+  .alert { font-size: 0.88rem; padding: 10px 14px; }
+}
+
+/* ================================================
+   12. MODALS
+   ================================================ */
+@media (max-width: 575.98px) {
+  .modal-dialog { margin: 8px; max-width: calc(100vw - 16px); }
+  .modal-body { padding: 1rem; }
+  .modal-header { padding: 0.9rem 1rem; }
+  .modal-footer { padding: 0.8rem 1rem; flex-wrap: wrap; gap: 8px; }
+  .modal-footer .btn { flex: 1; min-width: 120px; }
+}
+
+/* ================================================
+   13. PAGINATION
+   ================================================ */
+@media (max-width: 575.98px) {
+  .pagination .page-link { padding: 6px 10px; font-size: 0.85rem; }
+}
+
+/* ================================================
+   14. SEARCH BAR
+   ================================================ */
+.search-wrapper {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+@media (max-width: 575.98px) {
+  .search-wrapper { max-width: 100%; }
+}
+
+/* ================================================
+   15. DROPDOWN MENUS
+   ================================================ */
+@media (max-width: 575.98px) {
+  .dropdown-menu {
+    width: calc(100vw - 24px) !important;
+    max-width: 340px;
+    font-size: 0.88rem;
+  }
+  .dropdown-item { padding: 8px 14px; }
+}
+
+/* ================================================
+   16. FILE CARDS (صفحة تفاصيل المقرر)
+   ================================================ */
+@media (max-width: 767.98px) {
+  .front-file-card { padding: 14px !important; }
+  .front-file-icon-box { width: 46px !important; height: 46px !important; font-size: 1.25rem !important; }
+  #fileTabs { flex-wrap: nowrap !important; overflow-x: auto !important; white-space: nowrap !important; padding-bottom: 6px !important; scrollbar-width: none !important; }
+  #fileTabs::-webkit-scrollbar { display: none !important; }
+  #fileTabs .nav-item { flex-shrink: 0 !important; }
+  #fileTabs .nav-link { padding: 8px 14px !important; font-size: 0.88rem !important; }
+}
+@media (max-width: 575.98px) {
+  .front-file-card { padding: 12px !important; border-radius: 14px !important; }
+  .front-file-icon-box { width: 42px !important; height: 42px !important; font-size: 1.15rem !important; border-radius: 11px !important; }
+  .front-file-title { font-size: 0.9rem !important; }
+  .front-meta-chip { font-size: 0.7rem !important; padding: 2px 6px !important; }
+  .front-file-card .btn { font-size: 0.78rem !important; padding: 5px 10px !important; }
+}
+
+/* ================================================
+   17. ADMIN PANEL — SIDEBAR & LAYOUT
+   ================================================ */
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+/* السايدبار position:fixed في admin.css — لا نحتاج flex sizing هنا */
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* تابلت */
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    z-index: 1050;
+    transform: translateX(100%);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+  }
+  .admin-sidebar.open,
+  .admin-sidebar.show {
+    transform: translateX(0) !important;
+  }
+  .admin-main {
+    width: 100%;
+    margin-right: 0 !important;
+  }
+  .admin-topbar { padding: 0 14px; }
+  .admin-content { padding: 14px; }
+  .admin-page-card { padding: 16px; }
+}
+
+/* موبايل صغير */
+@media (max-width: 575.98px) {
+  .admin-topbar { min-height: 52px; padding: 0 10px; }
+  .admin-content { padding: 10px; }
+  .admin-page-card { padding: 12px; border-radius: 12px; }
+  .admin-breadcrumb-bar { padding: 8px 12px; flex-wrap: wrap; gap: 6px; }
+  .bc-time { font-size: 0.75rem; }
+  .topbar-user-info .topbar-user-name { font-size: 0.82rem; }
+  .topbar-user-info .topbar-user-role { font-size: 0.72rem; }
+}
+
+/* ================================================
+   18. ADMIN — STAT CARDS في الداشبورد
+   ================================================ */
+@media (max-width: 991.98px) {
+  .majors-stat-card { padding: 14px 14px; gap: 12px; }
+  .majors-stat-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+  .majors-stat-val { font-size: 1.45rem; }
+  .majors-stat-lbl { font-size: 0.8rem; line-height: 1.35; white-space: normal; }
+}
+@media (max-width: 767.98px) {
+  .admin-stat-card { padding: 14px; gap: 12px; }
+  .admin-stat-card .stat-icon-box { width: 44px; height: 44px; font-size: 1.2rem; }
+  .admin-stat-card .stat-number { font-size: 1.45rem; }
+  .admin-stat-card .stat-label { font-size: 0.8rem; }
+
+  .majors-stat-card { padding: 12px 10px; gap: 10px; }
+  .majors-stat-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+  .majors-stat-val { font-size: 1.3rem; }
+  .majors-stat-lbl { font-size: 0.76rem; line-height: 1.3; white-space: normal; }
+}
+@media (max-width: 575.98px) {
+  .admin-stat-card { padding: 12px; }
+  .admin-stat-card .stat-icon-box { width: 40px; height: 40px; font-size: 1.1rem; }
+  .admin-stat-card .stat-number { font-size: 1.3rem; }
+
+  .majors-stat-card { padding: 10px 8px; gap: 8px; }
+  .majors-stat-icon { width: 36px; height: 36px; font-size: 1rem; border-radius: 10px; }
+  .majors-stat-val { font-size: 1.2rem; }
+  .majors-stat-lbl { font-size: 0.72rem; }
+}
+
+/* ================================================
+   19. ADMIN — TABLES
+   ================================================ */
+@media (max-width: 991.98px) {
+  .admin-table thead th { font-size: 0.8rem; padding: 10px 12px; }
+  .admin-table tbody td { font-size: 0.85rem; padding: 10px 12px; }
+  .admin-table .table-actions { gap: 4px; }
+  .admin-table .table-actions .btn-action { width: 30px; height: 30px; font-size: 0.82rem; }
+}
+@media (max-width: 767.98px) {
+  .admin-table thead th { font-size: 0.75rem; padding: 8px 10px; }
+  .admin-table tbody td { font-size: 0.8rem; padding: 8px 10px; white-space: nowrap; }
+}
+
+/* ================================================
+   20. ADMIN — PAGE HEADER
+   ================================================ */
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (max-width: 575.98px) {
+  .admin-page-header { gap: 10px; margin-bottom: 14px; }
+  .admin-page-header h1,
+  .admin-page-header h2,
+  .admin-page-header .page-title { font-size: 1.1rem; }
+  .admin-page-header .btn { font-size: 0.82rem; padding: 7px 14px; }
+}
+
+/* ================================================
+   21. GRID UTILITIES متجاوبة
+   ================================================ */
+/* بدلاً من col-fixed نضمن استجابة البطاقات */
+@media (max-width: 575.98px) {
+  .col-sm-6.col-md-4.col-lg-3,
+  .col-6.col-md-4,
+  .col-sm-6 {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .row { --bs-gutter-x: 12px; --bs-gutter-y: 12px; }
+}
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .row { --bs-gutter-x: 14px; --bs-gutter-y: 14px; }
+}
+
+/* ================================================
+   22. FOOTER
+   ================================================ */
+footer {
+  padding: 24px 0;
+}
+@media (max-width: 575.98px) {
+  footer { padding: 16px 0; font-size: 0.85rem; }
+}
+
+/* ================================================
+   23. UTILITY CLASSES للاستجابة
+   ================================================ */
+/* نص قابل للاقتصاص */
+.text-truncate-mobile {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (min-width: 768px) {
+  .text-truncate-mobile { white-space: normal; overflow: visible; text-overflow: unset; }
+}
+
+/* إخفاء/إظهار */
+.d-mobile-only { display: none !important; }
+@media (max-width: 767.98px) {
+  .d-mobile-only { display: block !important; }
+  .d-desktop-only { display: none !important; }
+}
+
+/* ================================================
+   24. PRINT — طباعة
+   ================================================ */
+@media print {
+  .admin-sidebar,
+  .admin-topbar,
+  .main-site-navbar,
+  footer,
+  .btn,
+  .back-to-top { display: none !important; }
+  .admin-main, body { margin: 0 !important; padding: 0 !important; }
+  .container { max-width: 100% !important; }
+}
+
+/* ================================================
+   25. AUTH PAGES (login/register)
+   ================================================ */
+@media (max-width: 575.98px) {
+  .auth-card { border-radius: 16px !important; margin: 10px !important; }
+  .auth-card .card-body { padding: 1.2rem !important; }
+  .auth-title { font-size: 1.3rem !important; }
+  .auth-subtitle { font-size: 0.85rem !important; }
+  .btn-google, .btn-auth-social { padding: 9px 16px !important; font-size: 0.88rem !important; }
+}
+
+/* ================================================
+   26. SCHEDULE (جداول المحاضرات)
+   ================================================ */
+@media (max-width: 767.98px) {
+  .schedule-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .schedule-day-label { font-size: 0.8rem; }
+  .schedule-slot { padding: 8px; font-size: 0.8rem; }
+}
+@media (max-width: 575.98px) {
+  .schedule-slot { padding: 6px; font-size: 0.75rem; }
+}
+
+/* ================================================
+   27. ANNOUNCEMENT CARDS
+   ================================================ */
+@media (max-width: 575.98px) {
+  .announcement-card { border-radius: 14px; }
+  .announcement-card .card-body { padding: 0.9rem; }
+  .announcement-card .announcement-title { font-size: 0.95rem; }
+}
+
+/* ================================================
+   28. BACK TO TOP BUTTON
+   ================================================ */
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  transition: all 0.3s;
+}
+.back-to-top.visible { display: flex; }
+
+@media (max-width: 575.98px) {
+  .back-to-top { bottom: 16px; left: 16px; width: 40px; height: 40px; font-size: 0.9rem; }
+}
+
+/* ================================================
+   29. PREFERENCE MODAL (اختيار التخصص)
+   ================================================ */
+@media (max-width: 767.98px) {
+  #preferenceModal .modal-dialog { margin: 12px; }
+  #preferenceModal .modal-body { padding: 1rem; }
+  #prefMajorOptions .col-md-6 { flex: 0 0 100%; max-width: 100%; }
+  #prefLevelOptions .col-6 { flex: 0 0 50%; max-width: 50%; }
+  #savePrefBtn { font-size: 0.95rem; }
+}
+@media (max-width: 575.98px) {
+  #preferenceModal .pref-major-label { padding: 10px 12px; font-size: 0.88rem; }
+  #prefLevelOptions .col-6 { flex: 0 0 50%; }
+  .pref-level-label { padding: 8px 6px; font-size: 0.8rem; }
+}
+
+/* ================================================
+   30. NOTIFICATION DROPDOWN
+   ================================================ */
+@media (max-width: 575.98px) {
+  .notif-dropdown-menu {
+    width: calc(100vw - 20px) !important;
+    max-width: 320px;
+    right: -10px !important;
+  }
+  .notif-item { padding: 10px 12px; }
+  .notif-item .notif-title { font-size: 0.82rem; }
+  .notif-item .notif-msg { font-size: 0.8rem; }
+  .notif-item .notif-time { font-size: 0.7rem; }
+}
+
+/* ================================================
+   31. DARK MODE OVERRIDES للاستجابة
+   ================================================ */
+@media (max-width: 575.98px) {
+  [data-bs-theme="dark"] .offcanvas-nav-item { color: #e2e8f0; }
+  [data-bs-theme="dark"] .offcanvas-nav-item:hover { background: rgba(99, 102, 241, 0.12); color: #a5b4fc; }
+}
+
+/* ================================================
+   32. SAFE AREA للأجهزة ذات الشق (Notch)
+   ================================================ */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .main-site-navbar {
+    padding-top: env(safe-area-inset-top);
+  }
+  @media (max-width: 991.98px) {
+    .custom-offcanvas {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
+/* ================================================
+   33. HOVER EFFECTS (تُلغى على اللمس)
+   ================================================ */
+@media (hover: none) {
+  .major-card:hover { transform: none; }
+  .front-file-card:hover { transform: none; }
+  .admin-stat-card:hover { transform: none; }
+  .btn:hover { opacity: 0.92; }
+}
+
+/* ================================================
+   34. IMAGE RESPONSIVE FIXES
+   ================================================ */
+img {
+  max-width: 100%;
+  height: auto;
+}
+.navbar-logo-img {
+  max-height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+@media (max-width: 575.98px) {
+  .navbar-logo-img { max-height: 30px; }
+}
+
+/* ================================================
+   35. OVERFLOW PREVENTION
+   ================================================ */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+* {
+  min-width: 0;
+}
+
+
+/* ================================================
+   36. MAIN CONTENT AREA SPACING
+   ================================================ */
+main.flex-shrink-0 {
+  padding-bottom: 1rem;
+}
+main.flex-shrink-0 > .container {
+  padding-top: 0.5rem;
+}
+@media (max-width: 575.98px) {
+  main.flex-shrink-0 > .container {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+
+/* ================================================
+   37. ADMIN SIDEBAR — الشريط الجانبي لوحة التحكم
+   ================================================ */
+/* على الشاشات الكبيرة يثبت السايدبار على اليمين ولا يترك فراغاً مع المحتوى */
+@media (min-width: 992px) {
+  .admin-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: var(--sidebar-width, 260px) !important;
+    min-width: var(--sidebar-width, 260px) !important;
+    height: 100vh !important;
+    transform: none !important;
+    z-index: 1000 !important;
+  }
+  .admin-main {
+    min-height: 100vh;
+    margin-right: var(--sidebar-width, 260px) !important;
+    width: calc(100% - var(--sidebar-width, 260px)) !important;
+    max-width: calc(100% - var(--sidebar-width, 260px)) !important;
+  }
+  .sidebar-collapsed .admin-sidebar,
+  .admin-wrapper.sidebar-collapsed .admin-sidebar {
+    right: -100% !important;
+    width: 0 !important;
+    min-width: 0 !important;
+  }
+  .sidebar-collapsed .admin-main,
+  .admin-wrapper.sidebar-collapsed .admin-main {
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* الشريط الجانبي على الموبايل والتابلت */
+@media (max-width: 991.98px) {
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1049;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+@media (min-width: 992px) {
+  .sidebar-toggle { display: flex !important; }
+  .sidebar-backdrop { display: none !important; }
+}
+
+/* ================================================
+   39. TOPBAR في لوحة التحكم
+   ================================================ */
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  min-height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+@media (max-width: 767.98px) {
+  .admin-topbar { padding: 0 12px; min-height: 54px; }
+  .topbar-right { gap: 8px !important; }
+}
+@media (max-width: 575.98px) {
+  .admin-topbar { padding: 0 8px; min-height: 50px; }
+}
+
+/* ================================================
+   40. ADMIN FORMS — نماذج لوحة التحكم
+   ================================================ */
+@media (max-width: 767.98px) {
+  .admin-form .form-row { flex-direction: column; gap: 0; }
+  .admin-form .form-row > .form-group { min-width: 100%; }
+  .admin-form .form-control { font-size: 0.9rem; padding: 10px 12px; }
+}
+@media (max-width: 575.98px) {
+  .admin-form .btn-submit-row { flex-direction: column; gap: 8px; }
+  .admin-form .btn-submit-row .btn { width: 100%; }
+}

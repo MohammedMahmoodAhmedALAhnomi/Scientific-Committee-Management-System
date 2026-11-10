@@ -1,0 +1,386 @@
+/* ============================================================
+   Dark Mode Fixes — university_system admin panel
+   Targets: [data-bs-theme="dark"] AND body.dark-mode
+   ============================================================ */
+
+/* ── 1. Dashboard Quick-Stat Strip Cards ─────────────────── */
+.dash-quick-card {
+  background: var(--light, #f8fafc);
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dash-quick-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="dark"] .dash-quick-card,
+body.dark-mode .dash-quick-card {
+  background: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] .dash-quick-card:hover,
+body.dark-mode .dash-quick-card:hover {
+  background: #263548 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ── 2. Card & Card-Header ───────────────────────────────── */
+[data-bs-theme="dark"] .card,
+body.dark-mode .card {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .card-header,
+body.dark-mode .card-header {
+  background-color: #162032 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .card-header.bg-white,
+body.dark-mode .card-header.bg-white {
+  background-color: #162032 !important;
+}
+
+[data-bs-theme="dark"] .card-body,
+body.dark-mode .card-body {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .card-footer,
+body.dark-mode .card-footer {
+  background-color: #162032 !important;
+  border-top-color: rgba(255, 255, 255, 0.07) !important;
+  color: #94a3b8 !important;
+}
+
+/* ── 3. Tables ───────────────────────────────────────────── */
+[data-bs-theme="dark"] .table,
+body.dark-mode .table {
+  color: #e2e8f0 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+[data-bs-theme="dark"] .table thead th,
+body.dark-mode .table thead th {
+  color: #94a3b8 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-bs-theme="dark"] .table-light,
+[data-bs-theme="dark"] .table-light th,
+[data-bs-theme="dark"] .table-light td,
+body.dark-mode .table-light,
+body.dark-mode .table-light th,
+body.dark-mode .table-light td {
+  background-color: #0f172a !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+[data-bs-theme="dark"] .table tbody tr:hover td,
+body.dark-mode .table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-bs-theme="dark"] .table tbody tr td,
+body.dark-mode .table tbody tr td {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ── 4. List Group (Activity Log) ────────────────────────── */
+[data-bs-theme="dark"] .list-group-item,
+body.dark-mode .list-group-item {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .list-group-item:hover,
+body.dark-mode .list-group-item:hover {
+  background-color: #263548 !important;
+}
+
+/* ── 5. Badges & bg-white overrides ─────────────────────── */
+[data-bs-theme="dark"] .bg-white,
+body.dark-mode .bg-white {
+  background-color: #1e293b !important;
+}
+
+[data-bs-theme="dark"] .bg-light,
+body.dark-mode .bg-light {
+  background-color: #0f172a !important;
+  color: #94a3b8 !important;
+}
+
+/* ── 6. Text colors in dark mode ─────────────────────────── */
+[data-bs-theme="dark"] .text-muted,
+body.dark-mode .text-muted {
+  color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .text-dark,
+body.dark-mode .text-dark {
+  color: #e2e8f0 !important;
+}
+
+/* ── 7. Forms & Inputs ───────────────────────────────────── */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select,
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder,
+body.dark-mode .form-control::placeholder {
+  color: #64748b !important;
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus,
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #0f172a !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.15) !important;
+}
+
+[data-bs-theme="dark"] .input-group-text,
+body.dark-mode .input-group-text {
+  background-color: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+/* ── 8. Modals ───────────────────────────────────────────── */
+[data-bs-theme="dark"] .modal-content,
+body.dark-mode .modal-content {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .modal-header,
+body.dark-mode .modal-header {
+  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+  background-color: #162032 !important;
+}
+
+[data-bs-theme="dark"] .modal-footer,
+body.dark-mode .modal-footer {
+  border-top-color: rgba(255, 255, 255, 0.07) !important;
+  background-color: #162032 !important;
+}
+
+[data-bs-theme="dark"] .modal-title,
+body.dark-mode .modal-title {
+  color: #f1f5f9 !important;
+}
+
+/* ── 9. Dropdowns ────────────────────────────────────────── */
+[data-bs-theme="dark"] .dropdown-menu,
+body.dark-mode .dropdown-menu {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .dropdown-item,
+body.dark-mode .dropdown-item {
+  color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover,
+[data-bs-theme="dark"] .dropdown-item:focus,
+body.dark-mode .dropdown-item:hover,
+body.dark-mode .dropdown-item:focus {
+  background-color: rgba(255, 255, 255, 0.07) !important;
+  color: #fff !important;
+}
+
+[data-bs-theme="dark"] .dropdown-divider,
+body.dark-mode .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* ── 10. Alerts ──────────────────────────────────────────── */
+[data-bs-theme="dark"] .alert-info,
+body.dark-mode .alert-info {
+  background-color: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(14, 165, 233, 0.25) !important;
+  color: #7dd3fc !important;
+}
+
+[data-bs-theme="dark"] .alert-warning,
+body.dark-mode .alert-warning {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  color: #fcd34d !important;
+}
+
+[data-bs-theme="dark"] .alert-success,
+body.dark-mode .alert-success {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+  color: #6ee7b7 !important;
+}
+
+[data-bs-theme="dark"] .alert-danger,
+body.dark-mode .alert-danger {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+  color: #fca5a5 !important;
+}
+
+/* ── 11. Progress bars ───────────────────────────────────── */
+[data-bs-theme="dark"] .progress,
+body.dark-mode .progress {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── 12. Borders ─────────────────────────────────────────── */
+[data-bs-theme="dark"] .border,
+body.dark-mode .border {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-bs-theme="dark"] .border-bottom,
+body.dark-mode .border-bottom {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── 13. majors-stat-card (top 4 stat cards) ─────────────── */
+[data-bs-theme="dark"] .majors-stat-card,
+body.dark-mode .majors-stat-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── 14. Pagination ──────────────────────────────────────── */
+[data-bs-theme="dark"] .page-link,
+body.dark-mode .page-link {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .page-item.active .page-link,
+body.dark-mode .page-item.active .page-link {
+  background-color: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+  color: #fff !important;
+}
+
+/* ── 15. Tabs ────────────────────────────────────────────── */
+[data-bs-theme="dark"] .nav-tabs .nav-link,
+body.dark-mode .nav-tabs .nav-link {
+  color: #94a3b8 !important;
+  border-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .nav-tabs .nav-link.active,
+body.dark-mode .nav-tabs .nav-link.active {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.08) rgba(255, 255, 255, 0.08) #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+/* ── 16. Scrollbar styling in dark mode ──────────────────── */
+[data-bs-theme="dark"] *::-webkit-scrollbar-track,
+body.dark-mode *::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+[data-bs-theme="dark"] *::-webkit-scrollbar-thumb,
+body.dark-mode *::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+[data-bs-theme="dark"] *::-webkit-scrollbar-thumb:hover,
+body.dark-mode *::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+
+/* ── 17. Settings Tab Bar & Buttons Formatting ──────────── */
+.settings-tab-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 8px !important;
+  background: #ffffff;
+  border-radius: 16px !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03) !important;
+  margin-bottom: 24px !important;
+  overflow: visible !important;
+}
+
+[data-bs-theme="dark"] .settings-tab-bar,
+body.dark-mode .settings-tab-bar {
+  background: #162032 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.settings-tab-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: #64748b !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  width: auto !important;
+  transition: all 0.2s ease !important;
+}
+
+.settings-tab-btn:hover {
+  color: #4f46e5 !important;
+  background: rgba(79, 70, 229, 0.08) !important;
+}
+
+.settings-tab-btn.active {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
+  border-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .settings-tab-btn,
+body.dark-mode .settings-tab-btn {
+  color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .settings-tab-btn:hover,
+body.dark-mode .settings-tab-btn:hover {
+  color: #f1f5f9 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-bs-theme="dark"] .settings-tab-btn.active,
+body.dark-mode .settings-tab-btn.active {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4) !important;
+}

@@ -1,0 +1,171 @@
+<?php
+
+namespace App\Models;
+
+use App\Core\Model;
+use App\Config\Database;
+
+class File extends Model
+{
+    protected static string $table = 'files';
+    private static bool $migrated = false;
+
+    public static function ensureColumns(): void
+    {
+        if (self::$migrated) return;
+        try {
+            Database::raw("ALTER TABLE files MODIFY COLUMN file_type VARCHAR(50) NOT NULL DEFAULT 'lecture'");
+        } catch (\Throwable $e) {}
+        self::$migrated = true;
+    }
+
+    public static function getByCourse(int $courseId, string $sort = 'newest', int $page = 1, int $perPage = 20): array
+    {
+        self::ensureColumns();
+        $orderBy = match ($sort) {
+            'downloads' => 'f.download_count DESC, f.created_at DESC',
+            default => 'f.created_at DESC',
+        };
+        $total = Database::raw(
+            "SELECT COUNT(*) FROM files f WHERE f.course_id = ? AND f.is_approved = 1",
+            [$courseId]
+        )->fetchColumn();
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
+        $offset = ($page - 1) * $perPage;
+        $rows = Database::fetchAll(
+            "SELECT f.*, u.full_name as uploader_name
+             FROM files f
+             JOIN users u ON u.id = f.uploaded_by
+             WHERE f.course_id = ? AND f.is_approved = 1
+             ORDER BY $orderBy
+             LIMIT {$perPage} OFFSET {$offset}",
+            [$courseId]
+        );
+        return ['files' => $rows, 'total' => (int)$total, 'pages' => max(1, (int)ceil($total / $perPage))];
+    }
+
+    public static function getAllWithDetails(?string $where = null, array $params = []): array
+    {
+        $sql = "SELECT f.*, 
+                       c.name as course_name,
+                       c.major_id,
+                       c.level_id,
+                       c.semester_id,
+                       m.name as major_name,
+                       l.name as level_name,
+                       s.name as semester_name,
+                       u.full_name as uploader_name
+                FROM files f
+                LEFT JOIN courses c ON c.id = f.course_id
+                LEFT JOIN majors m ON m.id = c.major_id
+                LEFT JOIN levels l ON l.id = c.level_id
+                LEFT JOIN semesters s ON s.id = c.semester_id
+                LEFT JOIN users u ON u.id = f.uploaded_by";
+        if ($where) {
+            $sql .= " $where";
+        }
+        $sql .= " ORDER BY f.id DESC";
+        return Database::fetchAll($sql, $params);
+    }
+
+    public static function findWithDetails(int $id)
+    {
+        return Database::fetch(
+            "SELECT f.*, c.name as course_name, c.level_id, u.full_name as uploader_name
+             FROM files f
+             JOIN courses c ON c.id = f.course_id
+             JOIN users u ON u.id = f.uploaded_by
+             WHERE f.id = ?",
+            [$id]
+        );
+    }
+
+    public static function incrementDownload(int $id): void
+    {
+        Database::raw("UPDATE files SET download_count = download_count + 1 WHERE id = ?", [$id]);
+    }
+
+    public static function getRecentCount(int $hours = 48, ?int $levelId = null, ?int $majorId = null, ?string $afterDate = null): int
+    {
+        $sql = "SELECT COUNT(*) FROM files f";
+        $params = [];
+        $dateCond = "f.created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR)";
+        if ($afterDate) {
+            $dateCond .= " AND f.created_at > ?";
+        }
+        if ($levelId && $majorId) {
+            $sql .= " JOIN courses c ON c.id = f.course_id WHERE c.level_id = ? AND c.major_id = ? AND " . $dateCond;
+            $params = $afterDate ? [$levelId, $majorId, $hours, $afterDate] : [$levelId, $majorId, $hours];
+        } elseif ($levelId) {
+            $sql .= " JOIN courses c ON c.id = f.course_id WHERE c.level_id = ? AND " . $dateCond;
+            $params = $afterDate ? [$levelId, $hours, $afterDate] : [$levelId, $hours];
+        } else {
+            $sql .= " WHERE " . $dateCond;
+            $params = $afterDate ? [$hours, $afterDate] : [$hours];
+        }
+        return (int) Database::raw($sql, $params)->fetchColumn();
+    }
+
+    public static function getRecent(int $limit = 10, ?int $levelId = null, ?int $majorId = null): array
+    {
+        $limit = max(1, (int)$limit);
+        $sql = "SELECT f.*, c.name as course_name
+                FROM files f
+                JOIN courses c ON c.id = f.course_id
+                WHERE f.is_approved = 1";
+        $params = [];
+        if ($levelId) {
+            $sql .= " AND c.level_id = ?";
+            $params[] = $levelId;
+        }
+        if ($majorId) {
+            $sql .= " AND c.major_id = ?";
+            $params[] = $majorId;
+        }
+        $sql .= " ORDER BY f.created_at DESC LIMIT {$limit}";
+        return Database::fetchAll($sql, $params);
+    }
+
+    public static function getByType(string $type, int $limit = 20, ?int $levelId = null, ?int $majorId = null): array
+    {
+        $limit = max(1, (int)$limit);
+        $sql = "SELECT f.*, c.name as course_name
+                FROM files f
+                JOIN courses c ON c.id = f.course_id
+                WHERE f.file_type = ? AND f.is_approved = 1";
+        $params = [$type];
+        if ($levelId) {
+            $sql .= " AND c.level_id = ?";
+            $params[] = $levelId;
+        }
+        if ($majorId) {
+            $sql .= " AND c.major_id = ?";
+            $params[] = $majorId;
+        }
+        $sql .= " ORDER BY f.created_at DESC LIMIT {$limit}";
+        return Database::fetchAll($sql, $params);
+    }
+
+    public static function getTotalSize(?int $levelId = null, ?int $majorId = null): int
+    {
+        $sql = "SELECT COALESCE(SUM(f.file_size), 0) as total FROM files f";
+        $params = [];
+        if ($levelId && $majorId) {
+            $sql .= " JOIN courses c ON c.id = f.course_id WHERE c.level_id = ? AND c.major_id = ?";
+            $params = [$levelId, $majorId];
+        } elseif ($levelId) {
+            $sql .= " JOIN courses c ON c.id = f.course_id WHERE c.level_id = ?";
+            $params[] = $levelId;
+        }
+        $result = Database::fetch($sql, $params);
+        return (int) ($result->total ?? 0);
+    }
+
+    public static function getTotalDownloads(): int
+    {
+        $result = Database::fetch("SELECT COALESCE(SUM(download_count), 0) as total FROM files");
+        return (int) ($result->total ?? 0);
+    }
+}
+

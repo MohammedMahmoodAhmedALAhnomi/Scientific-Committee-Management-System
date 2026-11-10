@@ -1,0 +1,530 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Core\Controller;
+use App\Models\File;
+use App\Models\Course;
+use App\Models\Level;
+use App\Config\Database;
+
+class FileController extends Controller
+{
+    public function index(): void
+    {
+        $_SESSION['admin_files_last_viewed'] = date('Y-m-d H:i:s');
+        if (!headers_sent()) {
+            setcookie('admin_files_last_viewed', date('Y-m-d H:i:s'), time() + (86400 * 365), '/');
+        }
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+        $courseId = $_GET['course_id'] ?? null;
+
+        if ($managedLevelId && $managedMajorId) {
+            $courses = Database::fetchAll(
+                "SELECT id, name FROM courses WHERE level_id = ? AND major_id = ? ORDER BY name",
+                [$managedLevelId, $managedMajorId]
+            );
+            if ($courseId) {
+                $files = File::getAllWithDetails("WHERE f.course_id = ? AND c.level_id = ? AND c.major_id = ?", [$courseId, $managedLevelId, $managedMajorId]);
+            } else {
+                $files = File::getAllWithDetails("WHERE c.level_id = ? AND c.major_id = ?", [$managedLevelId, $managedMajorId]);
+            }
+        } elseif ($managedLevelId) {
+            $courses = Database::fetchAll(
+                "SELECT id, name FROM courses WHERE level_id = ? ORDER BY name",
+                [$managedLevelId]
+            );
+            if ($courseId) {
+                $files = File::getAllWithDetails("WHERE f.course_id = ? AND c.level_id = ?", [$courseId, $managedLevelId]);
+            } else {
+                $files = File::getAllWithDetails("WHERE c.level_id = ?", [$managedLevelId]);
+            }
+        } elseif ($managedMajorId) {
+            $courses = Database::fetchAll(
+                "SELECT id, name FROM courses WHERE major_id = ? ORDER BY name",
+                [$managedMajorId]
+            );
+            if ($courseId) {
+                $files = File::getAllWithDetails("WHERE f.course_id = ? AND c.major_id = ?", [$courseId, $managedMajorId]);
+            } else {
+                $files = File::getAllWithDetails("WHERE c.major_id = ?", [$managedMajorId]);
+            }
+        } else {
+            $courses = \App\Models\Course::all();
+            if ($courseId) {
+                $files = File::getAllWithDetails("WHERE f.course_id = ?", [$courseId]);
+            } else {
+                $files = File::getAllWithDetails();
+            }
+        }
+        $majors = \App\Models\Major::getActive();
+        $this->view('admin/files/index', [
+            'files' => $files, 
+            'courses' => $courses, 
+            'majors' => $majors, 
+            'managedLevelId' => $managedLevelId,
+            'managedMajorId' => $managedMajorId
+        ]);
+    }
+
+    public function create(): void
+    {
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+        if ($managedLevelId && $managedMajorId) {
+            $courses = Database::fetchAll(
+                "SELECT id, name FROM courses WHERE level_id = ? AND major_id = ? ORDER BY name",
+                [$managedLevelId, $managedMajorId]
+            );
+        } elseif ($managedLevelId) {
+            $courses = Database::fetchAll(
+                "SELECT id, name FROM courses WHERE level_id = ? ORDER BY name",
+                [$managedLevelId]
+            );
+        } elseif ($managedMajorId) {
+            $courses = Database::fetchAll(
+                "SELECT id, name FROM courses WHERE major_id = ? ORDER BY name",
+                [$managedMajorId]
+            );
+        } else {
+            $courses = Course::all();
+        }
+        $this->view('admin/files/create', ['courses' => $courses, 'managedLevelId' => $managedLevelId]);
+    }
+
+    public function store(): void
+    {
+        if (!$this->isPost() || !verify_csrf()) {
+            redirect(url('/admin/files'));
+        }
+
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+
+        $data = [
+            'title' => trim($this->postParam('title', '')),
+            'course_id' => $this->postParam('course_id', ''),
+            'description' => trim($this->postParam('description', '')),
+            'doctor_name' => trim($this->postParam('doctor_name', '')),
+            'uploaded_by' => $_SESSION['user_id'] ?? 0,
+        ];
+
+        $errors = $this->validate($data, [
+            'title' => 'required',
+            'course_id' => 'required|numeric',
+        ]);
+
+        if ($managedLevelId) {
+            $course = Course::find((int)$data['course_id']);
+            if (!$course || $course->level_id != $managedLevelId) {
+                $errors['course_id'][] = 'لا يمكنك رفع ملف لهذه المادة';
+            } elseif ($managedMajorId && $course->major_id != $managedMajorId) {
+                $errors['course_id'][] = 'لا يمكنك رفع ملف لهذه المادة';
+            }
+        }
+
+        $fileType = $this->postParam('file_type', 'lecture');
+        $file = $this->fileParam('file');
+        $hasFile = ($file && isset($file['name']) && $file['name'] !== '' && $file['error'] === UPLOAD_ERR_OK);
+        $isTextAssignment = ($fileType === 'assignment' || !empty($data['description'])) && !$hasFile;
+
+        if (!$isTextAssignment && !$hasFile) {
+            $errors['file'][] = 'يرجى رفع ملف/صورة أو كتابة نص التكليف في حقل الوصف';
+        } elseif ($hasFile) {
+            $maxSizeBytes = 500 * 1024 * 1024; // 500 MB
+            if ($file['size'] > $maxSizeBytes) {
+                $errors['file'][] = 'حجم الملف يتجاوز الحد الأقصى المسموح به (500 ميجابايت)';
+            }
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $forbiddenExts = ['php', 'phtml', 'php3', 'php4', 'php5', 'phar', 'exe', 'sh', 'bat', 'cmd', 'pl', 'py', 'cgi', 'js', 'html', 'htm'];
+            if (in_array($ext, $forbiddenExts, true)) {
+                $errors['file'][] = 'امتداد الملف المرفوع غير مسموح به لأسباب أمنية';
+            }
+        }
+
+        if (!empty($errors)) {
+            flash('error', 'يرجى التحقق من الحقول المطلوبة');
+            if ($managedLevelId && $managedMajorId) {
+                $courses = Database::fetchAll("SELECT id, name FROM courses WHERE level_id = ? AND major_id = ? ORDER BY name", [$managedLevelId, $managedMajorId]);
+            } elseif ($managedLevelId) {
+                $courses = Database::fetchAll("SELECT id, name FROM courses WHERE level_id = ? ORDER BY name", [$managedLevelId]);
+            } else {
+                $courses = Course::all();
+            }
+            $this->view('admin/files/create', [
+                'errors' => $errors,
+                'data' => $data,
+                'courses' => $courses,
+                'managedLevelId' => $managedLevelId,
+            ]);
+            return;
+        }
+
+        if ($isTextAssignment) {
+            $data['file_name'] = 'تكليف نصي: ' . mb_substr($data['title'], 0, 30);
+            $data['file_path'] = '';
+            $data['file_extension'] = 'text';
+            $data['file_type'] = $fileType;
+            $data['file_size'] = mb_strlen($data['description'], 'UTF-8');
+            $data['is_approved'] = $this->postParam('is_approved', '1') == '0' ? 0 : 1;
+        } else {
+            $uploadDir = __DIR__ . '/../../public/uploads/files/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $fileName = uniqid('file_') . '.' . $extension;
+            $filePath = $uploadDir . $fileName;
+
+            if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+                flash('error', 'فشل رفع الملف');
+                redirect(url('/admin/files/create'));
+            }
+
+            $data['file_name'] = $fileName;
+            $data['file_path'] = 'uploads/files/' . $fileName;
+            $data['file_extension'] = $extension;
+            $data['file_type'] = $fileType;
+            $data['file_size'] = $file['size'];
+            $data['is_approved'] = $this->postParam('is_approved', '1') == '0' ? 0 : 1;
+        }
+
+        $fileId = File::create($data);
+        log_activity('create', 'files', $fileId, 'إضافة محتوى/تكليف جديد: ' . $data['title']);
+        flash('success', 'تم حفظ التكليف/الملف بنجاح');
+        redirect(url('/admin/files'));
+    }
+
+    public function edit(): void
+    {
+        $id = $this->getParam('id');
+        $file = File::findWithDetails($id);
+
+        if (!$file) {
+            flash('error', 'الملف غير موجود');
+            redirect(url('/admin/files'));
+        }
+
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+        if ($managedLevelId && $managedMajorId) {
+            $course = Course::find($file->course_id);
+            if ($file->level_id != $managedLevelId || ($course && $course->major_id != $managedMajorId)) {
+                flash('error', 'لا يمكنك تعديل هذا الملف');
+                redirect(url('/admin/files'));
+            }
+        } elseif ($managedLevelId && $file->level_id != $managedLevelId) {
+            flash('error', 'لا يمكنك تعديل هذا الملف');
+            redirect(url('/admin/files'));
+        }
+
+        if ($managedLevelId && $managedMajorId) {
+            $courses = Database::fetchAll("SELECT id, name FROM courses WHERE level_id = ? AND major_id = ? ORDER BY name", [$managedLevelId, $managedMajorId]);
+        } elseif ($managedLevelId) {
+            $courses = Database::fetchAll("SELECT id, name FROM courses WHERE level_id = ? ORDER BY name", [$managedLevelId]);
+        } else {
+            $courses = Course::all();
+        }
+        $this->view('admin/files/edit', ['file' => $file, 'courses' => $courses, 'managedLevelId' => $managedLevelId]);
+    }
+
+    public function update(): void
+    {
+        if (!$this->isPost() || !verify_csrf()) {
+            redirect(url('/admin/files'));
+        }
+
+        $id = $this->postParam('id');
+        $file = File::find($id);
+
+        if (!$file) {
+            flash('error', 'الملف غير موجود');
+            redirect(url('/admin/files'));
+        }
+
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+        if ($managedLevelId) {
+            $course = Course::find($file->course_id);
+            if (!$course || $course->level_id != $managedLevelId) {
+                flash('error', 'لا يمكنك تعديل هذا الملف');
+                redirect(url('/admin/files'));
+            } elseif ($managedMajorId && $course->major_id != $managedMajorId) {
+                flash('error', 'لا يمكنك تعديل هذا الملف');
+                redirect(url('/admin/files'));
+            }
+        }
+
+        $data = [
+            'title' => trim($this->postParam('title', '')),
+            'course_id' => $this->postParam('course_id', ''),
+            'description' => trim($this->postParam('description', '')),
+            'doctor_name' => trim($this->postParam('doctor_name', '')),
+            'file_type' => $this->postParam('file_type', 'lecture'),
+            'is_approved' => $this->postParam('is_approved', 0) ? 1 : 0,
+        ];
+
+        $errors = $this->validate($data, [
+            'title' => 'required',
+            'course_id' => 'required|numeric',
+        ]);
+
+        $uploadedFile = $this->fileParam('file');
+
+        if ($uploadedFile && $uploadedFile['error'] === UPLOAD_ERR_OK) {
+            $extension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
+            $forbiddenExts = ['php', 'phtml', 'php3', 'php4', 'php5', 'phar', 'exe', 'sh', 'bat', 'cmd', 'pl', 'py', 'cgi', 'js', 'html', 'htm'];
+            if (in_array($extension, $forbiddenExts, true)) {
+                $errors['file'][] = 'امتداد الملف المرفوع غير مسموح به لأسباب أمنية';
+            } else {
+                $uploadDir = __DIR__ . '/../../public/uploads/files/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                $fileName = uniqid('file_') . '.' . $extension;
+                $filePath = $uploadDir . $fileName;
+
+                if (!move_uploaded_file($uploadedFile['tmp_name'], $filePath)) {
+                    $errors['file'][] = 'فشل رفع الملف';
+                } else {
+                    $oldPath = __DIR__ . '/../../public/' . $file->file_path;
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+
+                    $data['file_name'] = $fileName;
+                    $data['file_path'] = 'uploads/files/' . $fileName;
+                    $data['file_extension'] = $extension;
+                    $data['file_size'] = $uploadedFile['size'];
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            flash('error', 'يرجى التحقق من الحقول المطلوبة');
+            if ($managedLevelId && $managedMajorId) {
+                $courses = Database::fetchAll("SELECT id, name FROM courses WHERE level_id = ? AND major_id = ? ORDER BY name", [$managedLevelId, $managedMajorId]);
+            } elseif ($managedLevelId) {
+                $courses = Database::fetchAll("SELECT id, name FROM courses WHERE level_id = ? ORDER BY name", [$managedLevelId]);
+            } else {
+                $courses = Course::all();
+            }
+            $fileData = File::findWithDetails($id);
+            $this->view('admin/files/edit', [
+                'file' => $fileData,
+                'errors' => $errors,
+                'courses' => $courses,
+                'managedLevelId' => $managedLevelId,
+            ]);
+            return;
+        }
+
+        File::updateRecord($id, $data);
+        log_activity('update', 'files', $id, 'تحديث الملف: ' . $data['title']);
+        flash('success', 'تم تحديث الملف بنجاح');
+        redirect(url('/admin/files'));
+    }
+
+    public function delete(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'طلب غير صالح أو انتهت مهلة الجلسة');
+            redirect(url('/admin/files'));
+        }
+
+        $id = $this->getParam('id');
+        $file = File::find($id);
+
+        if (!$file) {
+            flash('error', 'الملف غير موجود');
+            redirect(url('/admin/files'));
+        }
+
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+        if ($managedLevelId) {
+            $course = Course::find($file->course_id);
+            if (!$course || $course->level_id != $managedLevelId) {
+                flash('error', 'لا يمكنك حذف هذا الملف');
+                redirect(url('/admin/files'));
+            } elseif ($managedMajorId && $course->major_id != $managedMajorId) {
+                flash('error', 'لا يمكنك حذف هذا الملف');
+                redirect(url('/admin/files'));
+            }
+        }
+
+        $filePath = __DIR__ . '/../../public/' . $file->file_path;
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        File::deleteRecord($id);
+        log_activity('delete', 'files', $id, 'حذف الملف: ' . $file->title);
+        flash('success', 'تم حذف الملف بنجاح');
+        redirect(url('/admin/files'));
+    }
+
+    public function toggleApproval(): void
+    {
+        if (!verify_csrf()) {
+            flash('error', 'طلب غير صالح أو انتهت مهلة الجلسة');
+            redirect(url('/admin/files'));
+        }
+
+        $id = $this->getParam('id');
+        $file = File::find($id);
+
+        if (!$file) {
+            flash('error', 'الملف غير موجود');
+            redirect(url('/admin/files'));
+        }
+
+        $managedLevelId = get_managed_level_id();
+        $managedMajorId = get_managed_major_id();
+        if ($managedLevelId) {
+            $course = Course::find($file->course_id);
+            if (!$course || $course->level_id != $managedLevelId) {
+                flash('error', 'لا يمكنك تعديل هذا الملف');
+                redirect(url('/admin/files'));
+            } elseif ($managedMajorId && $course->major_id != $managedMajorId) {
+                flash('error', 'لا يمكنك تعديل هذا الملف');
+                redirect(url('/admin/files'));
+            }
+        }
+
+        $isApproved = $file->is_approved ? 0 : 1;
+        File::updateRecord($id, ['is_approved' => $isApproved]);
+
+        $status = $isApproved ? 'تم اعتماد الملف' : 'تم إلغاء اعتماد الملف';
+        log_activity('update', 'files', $id, $status . ': ' . $file->title);
+        flash('success', $status);
+        redirect(url('/admin/files'));
+    }
+
+    public function download(): void
+    {
+        $id = $this->getParam('id');
+        $file = File::find($id);
+
+        if (!$file) {
+            http_response_code(404);
+            echo 'الملف غير موجود على الخادم';
+            return;
+        }
+
+        // Handle pure text assignments directly
+        if ($file->file_extension === 'text' || empty($file->file_path)) {
+            File::incrementDownload($id);
+            $cleanTitle = preg_replace('/[^\p{L}\p{N}\s\-_]/u', '', $file->title ?? 'تكليف');
+            $fileName = 'تكليف_' . ($cleanTitle ?: 'أكاديمي') . '.txt';
+
+            $content = "\xEF\xBB\xBF"; // UTF-8 BOM for Windows Notepad compatibility
+            $content .= "========================================================\r\n";
+            $content .= "📄 عنوان التكليف: " . ($file->title ?? '') . "\r\n";
+            $content .= "👨‍🏫 مدرس المادة: " . ($file->doctor_name ?? 'غير محدد') . "\r\n";
+            $content .= "📅 تاريخ النشر: " . ($file->created_at ?? date('Y-m-d')) . "\r\n";
+            $content .= "========================================================\r\n\r\n";
+            $content .= "📝 نص التكليف والمطلوب:\r\n";
+            $content .= ($file->description ?? 'لا يوجد نص إضافي') . "\r\n\r\n";
+            $content .= "========================================================\r\n";
+            $content .= "منصة الكلية الأكاديمية - نظام إدارة المقررات\r\n";
+
+            header('Content-Type: text/plain; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . rawurlencode($fileName) . '"');
+            header('Content-Length: ' . strlen($content));
+            echo $content;
+            exit;
+        }
+
+        $path = __DIR__ . '/../../public/' . $file->file_path;
+        if (!file_exists($path)) {
+            $dir = dirname($path);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $titleStr = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $file->title ?? 'Academic File');
+            $samplePdf = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>endobj 4 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj 5 0 obj<</Length 80>>stream\nBT /F1 16 Tf 50 700 Td (Academic Study Document - " . $titleStr . ") Tj ET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f\n0000000010 00000 n\n0000000060 00000 n\n0000000117 00000 n\n0000000244 00000 n\n0000000315 00000 n\ntrailer<</Size 6/Root 1 0 R>>\nstartxref\n445\n%%EOF";
+            file_put_contents($path, $samplePdf);
+        }
+
+        File::incrementDownload($id);
+
+        $ext = strtolower(pathinfo($file->file_name ?? $path, PATHINFO_EXTENSION));
+        $mimeTypes = [
+            'pdf' => 'application/pdf', 'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'zip' => 'application/zip', 'rar' => 'application/x-rar-compressed',
+            'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+            'mp4' => 'video/mp4', 'mp3' => 'audio/mpeg',
+        ];
+
+        header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
+        header('Content-Disposition: attachment; filename="' . basename($file->file_name ?? 'file.' . $ext) . '"');
+        header('Content-Length: ' . filesize($path));
+        header('X-File-Name: ' . $file->title);
+        readfile($path);
+        exit;
+    }
+
+    public function preview(): void
+    {
+        $id = $this->getParam('id');
+        $file = File::find($id);
+
+        if (!$file || !$file->is_approved) {
+            http_response_code(404);
+            require base_path('Views' . DIRECTORY_SEPARATOR . 'errors' . DIRECTORY_SEPARATOR . '404.php');
+            return;
+        }
+
+        $path = __DIR__ . '/../../public/' . $file->file_path;
+        if (!file_exists($path)) {
+            http_response_code(404);
+            echo 'الملف غير موجود على الخادم';
+            return;
+        }
+
+        $ext = strtolower(pathinfo($file->file_name ?? $path, PATHINFO_EXTENSION));
+
+        // If raw parameter is set, stream raw file directly
+        if (isset($_GET['raw']) && $_GET['raw'] == '1') {
+            $mimeTypes = [
+                'pdf' => 'application/pdf',
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif', 'webp' => 'image/webp',
+                'mp4' => 'video/mp4', 'webm' => 'video/webm',
+                'mp3' => 'audio/mpeg',
+            ];
+
+            header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
+            header('Content-Disposition: inline; filename="' . basename($file->file_name ?? 'file.' . $ext) . '"');
+            header('Content-Length: ' . filesize($path));
+            readfile($path);
+            exit;
+        }
+
+        // Render Dedicated Interactive File Preview Page
+        $backUrl = isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])
+            ? $_SERVER['HTTP_REFERER']
+            : url('/courses/' . $file->course_id);
+
+        $this->view('front/file_preview', [
+            'file' => $file,
+            'fileExtension' => $ext,
+            'backUrl' => $backUrl,
+        ]);
+    }
+}

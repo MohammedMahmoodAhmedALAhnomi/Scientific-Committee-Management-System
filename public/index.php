@@ -1,0 +1,93 @@
+<?php
+
+if (str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/')) {
+    ini_set('display_errors', '0');
+    error_reporting(0);
+    ob_start();
+}
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/Config/Helpers.php';
+
+spl_autoload_register(function ($class) {
+    if (str_starts_with($class, 'App\\')) {
+        $file = __DIR__ . '/../app/' . str_replace('\\', '/', substr($class, 4)) . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+        }
+    }
+});
+
+$dotenv = __DIR__ . '/../.env';
+if (file_exists($dotenv)) {
+    $lines = file($dotenv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $trimmedLine = trim($line);
+        if (str_starts_with($trimmedLine, '#') || empty($trimmedLine)) continue;
+        if (str_contains($line, '=')) {
+            [$key, $value] = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim(trim($value), "\"'");
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+        }
+    }
+}
+
+// Set default application timezone
+date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? getenv('APP_TIMEZONE') ?: 'Asia/Riyadh');
+
+ini_set('session.gc_maxlifetime', 31536000);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start([
+        'cookie_lifetime' => 31536000,
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+        'use_strict_mode' => true,
+    ]);
+}
+
+// Auto-restore session from persistent remember token if session expired or browser restarted
+if (empty($_SESSION['user_id']) && !empty($_COOKIE['app_remember_token'])) {
+    $token = $_COOKIE['app_remember_token'];
+    if (str_contains($token, ':')) {
+        [$id, $hash] = explode(':', $token, 2);
+        $id = (int)$id;
+        if ($id > 0) {
+            $user = \App\Models\User::find($id);
+            if ($user && !empty($user->is_active)) {
+                $secret = env('APP_SECRET', 'university_app_secret_2026');
+                $expectedHash = hash_hmac('sha256', $user->id . '|' . $user->email . '|' . $user->password, $secret);
+                if (hash_equals($expectedHash, $hash)) {
+                    $_SESSION['user_id'] = $user->id;
+                    $_SESSION['user_name'] = $user->full_name;
+                    $_SESSION['user_role'] = $user->role;
+                    $_SESSION['user_email'] = $user->email;
+                    $_SESSION['managed_major_id'] = $user->managed_major_id ?? $user->major_id;
+                    $_SESSION['managed_level_id'] = $user->managed_level_id;
+                }
+            }
+        }
+    }
+}
+
+error_reporting(E_ALL);
+$debug = env('APP_DEBUG', true);
+if ($debug) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+} else {
+    ini_set('display_errors', 0);
+}
+
+$router = new \App\Config\Router();
+
+$router->registerMiddleware('Auth', \App\Middleware\Auth::class);
+$router->registerMiddleware('Admin', \App\Middleware\Admin::class);
+$router->registerMiddleware('AdminAccess', \App\Middleware\AdminAccess::class);
+
+$uri = $_SERVER['REQUEST_URI'];
+$method = $_SERVER['REQUEST_METHOD'];
+
+$router->dispatch($uri, $method);
